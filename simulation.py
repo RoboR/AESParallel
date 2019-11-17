@@ -10,11 +10,12 @@ for size in KEY_SIZES:
 	key = np.random.choice(256, size).astype(np.uint8)
 	KEYS.append([size, key])
 
-NUM_CORES = [1, 2, 4, 8]
+# NUM_CORES = [1, 2, 4, 8]
+NUM_CORES = [8, 4, 2, 1]
 NUM_USERS = [5, 10, 15]
 FILE_VARIANCE = [3, 9, 16]
 FILE_ASSIGNS = dict()
-FILE_SIZE = 1024
+FILE_SIZE = 10182
 
 for num in NUM_USERS:
 	file_assign = dict()
@@ -43,7 +44,8 @@ for num in NUM_USERS:
 	FILE_ASSIGNS[num] = file_assign
 
 
-fp = open("result.txt", 'a')
+fp_enc = open("result_sefps_enc.txt", 'a')
+fp_dec = open("result_sefps_dec.txt", 'a')
 
 for key in KEYS:
 	for num_cores in NUM_CORES:
@@ -56,26 +58,45 @@ for key in KEYS:
 							+ " ; File distribution variance = " + str(variance) \
 							+ " ; files assigned = " + str(FILE_ASSIGNS[user][variance])
 				print(condition)
-				fp.write(condition)
-				fp.write("\n")
+				fp_enc.write(condition)
+				fp_enc.write("\n")
+				fp_dec.write(condition)
+				fp_dec.write("\n")
 
 				# AES algorithm here
-				start_time = datetime.datetime.now()
+				encrypt_total_time = datetime.timedelta()
+				decrypt_total_time = datetime.timedelta()
+				file_bytes = np.random.choice(256, FILE_SIZE).astype(np.uint8)
 
 				# SEFPS
 				for file_by_user in FILE_ASSIGNS[user][variance]:
 					for file in range(0, file_by_user):
 						sefps = SEFPS(num_cores, key_bytes)
-						file_bytes = np.random.choice(256, FILE_SIZE).astype(np.uint8)
+
+						# Encrypt
+						enc_start_time = datetime.datetime.now()
 						cipher = sefps.encrypt(file_bytes)
+						enc_end_time = datetime.datetime.now()
+						encrypt_total_time = encrypt_total_time +  enc_end_time - enc_start_time
 
-				end_time = datetime.datetime.now()
+						# Decrypt
+						dec_start_time = datetime.datetime.now()
+						sefps.decrypt(cipher)
+						dec_end_time = datetime.datetime.now()
+						decrypt_total_time = decrypt_total_time + dec_end_time - dec_start_time
 
-				delta_time = end_time - start_time
-				delta_microseconds = delta_time.total_seconds() * 1000
+				delta_enc_microseconds = encrypt_total_time.total_seconds() * 1000
+				delta_dec_microseconds = decrypt_total_time.total_seconds() * 1000
 
-				time_res = "Total time spend " + str(delta_microseconds)
-				print(time_res)
+				enc_time_res = "Total time spend " + str(delta_enc_microseconds)
+				print(enc_time_res)
 				print("\n")
-				fp.write(time_res)
-				fp.write("\n\n")
+				fp_enc.write(enc_time_res)
+				fp_enc.write("\n\n")
+
+
+				dec_time_res = "Total time spend " + str(delta_dec_microseconds)
+				print(dec_time_res)
+				print("\n")
+				fp_dec.write(dec_time_res)
+				fp_dec.write("\n\n")

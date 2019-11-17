@@ -17,7 +17,7 @@ class AESWrapper:
 
     def encrypt(self, plaintext_bytes):
         total_size = len(plaintext_bytes)
-        ciphertext = numpy.zeros((total_size,), dtype=int)
+        ciphertext = numpy.zeros((total_size,), dtype=numpy.uint8)
 
         for start_idx in range(0, total_size, self.BLOCK_IN_BYTES):
             end_idx = start_idx + self.BLOCK_IN_BYTES
@@ -30,7 +30,7 @@ class AESWrapper:
 
     def decrypt(self, ciphertext_bytes):
         total_size = len(ciphertext_bytes)
-        plaintext = numpy.zeros((total_size,), dtype=int)
+        plaintext = numpy.zeros((total_size,), dtype=numpy.uint8)
 
         for start_idx in range(0, total_size, self.BLOCK_IN_BYTES):
             end_idx = start_idx + self.BLOCK_IN_BYTES
